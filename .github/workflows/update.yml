@@ -1,5 +1,10 @@
 name: update
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 on:
   push:
   schedule:
