@@ -16,24 +16,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      
       - uses: actions/setup-node@v4
         with:
           node-version: '22.x'
+          
       - run: npm install
+
+      - run: npm install node-fetch cheerio
+      
       - name: Run script
-        run: npm update
+        run: node update.js
+        
       - name: Copy deploy files
         run: |
           mkdir deploy
           cp -r output deploy/
           cp -r static/data deploy/data
+          
       - name: Setup Pages
         uses: actions/configure-pages@v5
+        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           # Upload entire repository
           path: './deploy'
+          
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
