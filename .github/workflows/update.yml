@@ -17,5 +17,8 @@ jobs:
       - run: npm install
       - name: Run script
         run: npm update
-      - name: Build static site
-        run: npm run build
+      - name: Trigger static.yml workflow
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: static.yml
+          token: ${{ secrets.GITHUB_TOKEN }}
