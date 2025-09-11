@@ -1,0 +1,17 @@
+{
+    "clans": [
+        {
+            "title": "TFC",
+            "players": ["https://steamcommunity.com/profiles/76561199592920783/"],
+            "info": "TFC clan info fr",
+            "requirements": "70+ hours in game, 160 lvl, 15k kills"
+        }
+    ],
+    "players": [
+        {
+            "id": "76561199592920783",
+            "url": "https://steamcommunity.com/profiles/76561199592920783/",
+            "clan": 0
+        }
+    ]
+}
