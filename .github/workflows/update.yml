@@ -17,3 +17,5 @@ jobs:
       - run: npm install
       - name: Run script
         run: npm update
+      - name: Build static site
+        run: npm run build
