@@ -17,8 +17,13 @@ jobs:
       - run: npm install
       - name: Run script
         run: npm update
-      - name: Trigger static.yml workflow
-        uses: benc-uk/workflow-dispatch@v1
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          workflow: static.yml
-          token: ${{ secrets.GITHUB_TOKEN }}
+          # Upload entire repository
+          path: '.'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
