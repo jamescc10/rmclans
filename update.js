@@ -80,6 +80,8 @@ for(const element of inputJson.players) {
     let d = await urlToData(element.url);
     d.clan = element.clan;
     // old data
+    if(!fs.existsSync("./output/players/"+element.id+".json"))
+        fs.writeFileSync("./output/players/"+element.id+".json", JSON.stringify({kills_latest:0,kills_week:0,kills_2week:0,kills_month:0,kills_all:0}));
     const old = JSON.parse(fs.readFileSync("./output/players/"+element.id+".json"));
     d.kills_latest = Number(d.score[4][2].replace(/,/g, ''));
     d.kills_week = old.kills_latest;
