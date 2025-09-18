@@ -1,18 +1,26 @@
-// get clans.json data and make info.json and put it into static
-// convert some markdown to html
+// TODO: convert some markdown to html
 
 import fetch from 'node-fetch';
 import * as cheerio from 'cheerio';
 import fs from 'fs';
 
-const inputJson = JSON.parse(fs.readFileSync("./input.json"));
-
-// game data
 const gameid = "1280770";
-const lb = ["7278576","7278567","7278569","7278568","7278574","8917861","8917858","7605131","8046038","7278572","7278570","7278578",];
-const lbName = ["Deaths","Level","Free for all losses","Free for all wins","Kills","King of the hill losses","King of the hill wins","Melee kills","No scopes","Team deathmatch losses","Team deathmatch wins","World deaths",];
+const websiteURL = "https://jamescc10.github.io/rmclans/output/";
+const leaderboards = [
+    ["7278576", "Deaths"],
+    ["7278567", "Level"],
+    ["7278569", "Free for all losses"],
+    ["7278568", "Free for all wins"],
+    ["7278574", "Kills"],
+    ["8917861", "King of the hill losses"],
+    ["8917858", "King of the hill wins"],
+    ["7605131", "Melee kills"],
+    ["8046038", "No scopes"],
+    ["7278572", "Team deathmatch losses"],
+    ["7278570", "Team deathmatch wins"],
+    ["7278578", "World deaths"]
+];
 
-// get player data
 const getLeaderboardData = async (url, lb) => {
     const steamurl = `${url}stats/${gameid}/achievements/?tab=leaderboards&lb=${lb}`;
     const res = await fetch(steamurl);
@@ -26,11 +34,9 @@ const getLeaderboardData = async (url, lb) => {
             if(href.startsWith(`${url}stats/${gameid}/`)) {
                 const score = $(element).parent().parent().parent().children(".scoreh").text().trim();
                 const rank = $(element).parent().parent().parent().children(".globalRankh").text().trim();
-                const name = $(element).text();
                 data = {
                     score: score,
-                    rank: rank.slice(13,rank.length),
-                    name: name
+                    rank: rank.slice(13,rank.length)
                 };
             }
         }
@@ -40,111 +46,143 @@ const getLeaderboardData = async (url, lb) => {
 }
 
 const urlToData = async (url) => {
+    // add ending / to url
     url = (url[url.length-1] == "/") ? url : url.padEnd(url.length+1,"/");
 
+    // get leaderboard data for everything
     let data = {};
     data.score = new Array();
-    for(let i = 0; i < lb.length; ++i) {
-        let d = await getLeaderboardData(url, lb[i]);
-        if(d.name != undefined) {
-            data.name = d.name;
-            data.score.push([lbName[i], d.rank, d.score]);
+    for(let i = 0; i < leaderboards.length; ++i) {
+        let d = await getLeaderboardData(url, leaderboards[i][0]);
+        if(d.score != undefined) {
+            data.score.push([leaderboards[i][1], d.rank, d.score]);
         } else {
-            data.score.push([lbName[i], "N/A", "N/A"]);
+            data.score.push([leaderboards[i][1], "N/A", "N/A"]);
         }
     }
 
     return data;
 }
 
-let clansList = [];
-let clansKillList = [];
-let playersList = [];
-let playerList = []; // only names
-let clanList = []; // only names
+const playersData = async (inputJson) => {
+    let playersData = []; // kills latest,kills week, kills 2week,kills month
+    let playersInfo = []; // [name, url, id, clan, public]
 
-for(const element of inputJson.clans) {
-    let c = element;
-    const old = JSON.parse(fs.readFileSync("./output/clans/"+element.title+".json"));
-    c.kills_week = old.kills_latest;
-    c.kills_2week = old.kills_week;
-    c.kills_month = old.kills_2week;
-    c.kills_all = 0;
-    clansList.push(element);
-    clansKillList.push(0);
-    clanList.push(element.title);
-}
+    for(const player of inputJson.players) {
+        if(!player.public) {
+            // private
+            playersData.push({});
+            playersInfo.push(player);
+        } else {
+            // public
+            let json = await urlToData(player.url);
+            let oldDataFetch = await fetch(`${websiteURL}players/${player.id}.json`);
+            let oldData = {
+                kills_latest: undefined,
+                kills_week: undefined,
+                kills_2week: undefined,
+                kills_month: undefined
+            };
+            if(oldDataFetch.ok)
+                oldData = JSON.parse(await oldDataFetch.text());
 
-for(const element of inputJson.players) {
-    console.log(element);
-    let d = await urlToData(element.url);
-    d.clan = element.clan;
-    // old data
-    if(!fs.existsSync("./output/players/"+element.id+".json"))
-        fs.writeFileSync("./output/players/"+element.id+".json", JSON.stringify({kills_latest:0,kills_week:0,kills_2week:0,kills_month:0,kills_all:0}));
-    const old = JSON.parse(fs.readFileSync("./output/players/"+element.id+".json"));
-    d.kills_latest = Number(d.score[4][2].replace(/,/g, ''));
-    d.kills_week = old.kills_latest;
-    d.kills_2week = old.kills_week;
-    d.kills_month = old.kills_2week;
-    d.url = element.url;
-    d.id = element.id;
-    clansKillList[element.clan] += d.kills_latest - d.kills_week;
-    clansList[d.clan].kills_all += d.kills_latest;
-    playersList.push(d);
-    playerList.push([d.name, element.url, element.id]);
-}
+            json.kills_latest = Number(json.score[4][2].replace(/,/g, ''));
+            json.kills_week = oldData.kills_latest;
+            json.kills_2week = oldData.kills_week;
+            json.kills_month = oldData.kills_2week;
 
-for(let i = 0; i < inputJson.clans.length; ++i) {
-    clansList[i].kills_latest = clansKillList[i];
-}
-
-console.log("Clans:");
-for(const clan of clansList) {
-    console.log("\tTitle: "+clan.title);
-    console.log("\tPlayers: "+clan.players);
-    console.log("\tInfo: "+clan.info);
-    console.log("\tRequirements: "+clan.requirements);
-    console.log("\tKills (latest):"+clan.kills_latest);
-    console.log("\tKills (week):"+clan.kills_week);
-    console.log("\tKills (2week): "+clan.kills_2week);
-    console.log("\tKills (month):"+clan.kills_month);
-    console.log("\n");
-}
-
-console.log("\nPlayers:");
-for(const player of playersList) {
-    console.log("\t"+player.name+":");
-
-    // data
-    for(const score of player.score) {
-        console.log("\t\tScore: "+score);
+            playersData.push(json);
+            playersInfo.push(player);
+        }
     }
 
-    // kills
-    console.log("\t\tKills (latest): "+player.kills_latest);
-    console.log("\t\tKills (week): "+player.kills_week);
-    console.log("\t\tKills (2week): "+player.kills_2week);
-    console.log("\t\tKills (month): "+player.kills_month);
-
-    console.log("\t\tClan(s): "+player.clan)
+    return [playersInfo, playersData];
 }
 
-console.log(clansKillList);
+const clansData = async (inputJson, playerData) => {
+    let clanData = []; // kills latest, kills week, kills 2week, kills month, requirements, players
+    let clanInfo = []; // [title, info]
 
-// write files
-// TODO: remove testouput before
-fs.rmSync("./output/", {recursive:true, force:true});
-fs.mkdirSync("./output/");
-fs.mkdirSync("./output/clans/");
-fs.mkdirSync("./output/players/");
-const outputPlayersJson = JSON.stringify(playerList);
-const outputClansJson = JSON.stringify(clanList);
-console.log(outputPlayersJson);
-console.log(outputClansJson);
-fs.writeFileSync("./output/clans.json", `{"clans": ${outputClansJson}}`);
-fs.writeFileSync("./output/players.json", `{"players": ${outputPlayersJson}}`);
-for(let i = 0; i < clansList.length; ++i) { fs.writeFileSync(`./output/clans/${clansList[i].title}.json`, JSON.stringify(clansList[i])); }
-for(let i = 0; i < playersList.length; ++i) { fs.writeFileSync(`./output/players/${playersList[i].id}.json`, JSON.stringify(playersList[i])); }
-fs.rmSync("./static/data/", {recursive:true, force:true});
-fs.cpSync("./output/", "./static/data/", {recursive:true});
+    for(const clan of inputJson.clans) {
+        let json = {
+            requirements: clan.requirements,
+            players: clan.players
+        }
+
+        let oldDataFetch = await fetch(`${websiteURL}clans/${clan.title}.json`);
+        let oldData = {
+            kills_latest: undefined,
+            kills_week: undefined,
+            kills_2week: undefined,
+            kills_month: undefined
+        };
+        if(oldDataFetch.ok)
+            oldData = JSON.parse(await oldDataFetch.text());
+
+        json.kills_week = oldData.kills_latest;
+        json.kills_2week = oldData.kills_week;
+        json.kills_month = oldData.kills_2week;
+        json.kills_latest = 0;
+
+        for(let i = 0; i < playerData[0].length; ++i) {
+            const player =  playerData[1][i];
+
+            if(playerData[0].public) {
+                clan.kills_latest += player.kills_latest;
+            }
+        }
+
+        clanInfo.push([clan.title, clan.info]);
+        clanData.push(json);
+    }
+
+    return [clanInfo, clanData];
+}
+
+const run = async (now) => {
+    const inputJson = JSON.parse(fs.readFileSync("./input.json"));
+
+    const playerData = await playersData(inputJson);
+    const clanData = await clansData(inputJson, playerData);
+
+    // file system
+    fs.rmSync("./static/data/", {recursive:true, force:true});
+    fs.mkdirSync("./static/data/");
+    fs.mkdirSync("./static/data/clans/");
+    fs.mkdirSync("./static/data/players/");
+    const outputPlayersJson = JSON.stringify(playerData[0]);
+    const outputClansJson = JSON.stringify(clanData[0]);
+    fs.writeFileSync("./static/data/clans.json", `{"clans": ${outputClansJson}}`);
+    fs.writeFileSync("./static/data/players.json", `{"players": ${outputPlayersJson}}`);
+    for(let i = 0; i < clanData[0].length; ++i) { fs.writeFileSync(`./static/data/clans/${clanData[0][i][0]}.json`, JSON.stringify(clanData[1][i])); }
+    for(let i = 0; i < playerData[0].length; ++i) { fs.writeFileSync(`./static/data/players/${playerData[0][i].id}.json`, JSON.stringify(playerData[1][i])); }
+    fs.writeFileSync("./static/data/time.txt", `${now}`);
+}
+
+const main = async () => {
+    const now = new Date();
+    if(now.getUTCDay() !== 5 || now.getUTCHours() !== 17) {
+        console.log("not friday 5pm");
+        return;
+    }
+
+    let oldTimeFetch = await fetch(`${websiteURL}time.txt`);
+    let oldTime = now;
+    if(oldTimeFetch.ok)
+        oldTime = new Date(await oldDataFetch.text());
+    else {
+        console.log("first run?");
+        run(now);
+        return;
+    }
+
+    const differenceDays = (now-oldTime)/(1000*60*60*24);
+    if(differenceDays >= 7) {
+        console.log("running");
+        run(now);
+    } else {
+        console.log(`its only been ${differenceDays}`);
+    }
+}
+
+main();
