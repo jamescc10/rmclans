@@ -37,5 +37,10 @@ jobs:
           # Only add changes in static/data/
           git add static/data/
 
-          git commit -m "Update static/data on schedule"
-          git push
+          # Check if anything changed
+          if git diff --cached --quiet; then
+            echo "No changes in static/data/"
+          else
+            git commit -m "Update static/data on schedule"
+            git push
+          fi
