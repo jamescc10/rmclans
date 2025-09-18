@@ -1,60 +1,46 @@
-name: update
+name: update-data
+
+on:
+  schedule:
+    - cron: "30 17 * * 5"
+  workflow_dispatch:
 
 permissions:
   contents: write
-  pages: write
-  id-token: write
 
-on:
-  push:
-  schedule:
-    - cron: "30 17 * * 5"
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build:
+  update:
     runs-on: ubuntu-latest
+
     steps:
-      - name: checkout default branch
+      - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-      
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: '22.x'
-          
-      - run: npm install
 
-      - run: npm install node-fetch cheerio
-      
-      - name: Run script
+      - name: Install dependencies
+        run: |
+          npm install
+          npm install node-fetch cheerio
+
+      - name: Run update script
         run: node update.js
-      
-      - name: checkout gh-pages branch
-        uses: actions/checkout@v3
-        with:
-          ref: gh-pages
-          path: old-pages
-      
-      - name: Copy old pages to deploy
+
+      - name: Commit changes to static/data/
         run: |
-          mkdir -p deploy
-          cp -r old-pages/* deploy/
-        
-      - name: Copy deploy files
-        run: |
-          cp -r static/* deploy/
-          
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-        
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          # Upload entire repository
-          path: './deploy'
-          
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Only add changes in static/data/
+          git add static/data/
+
+          # Check if anything changed
+          if git diff --cached --quiet; then
+            echo "No changes in static/data/"
+          else
+            git commit -m "Update static/data on schedule"
+            git push
+          fi
