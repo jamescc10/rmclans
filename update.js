@@ -5,7 +5,7 @@ import * as cheerio from 'cheerio';
 import fs from 'fs';
 
 const gameid = "1280770";
-const websiteURL = "https://jamescc10.github.io/rmclans/output/";
+const websiteURL = "https://jamescc10.github.io/rmclans/data/";
 const leaderboards = [
     ["7278576", "Deaths"],
     ["7278567", "Level"],
@@ -186,4 +186,5 @@ const main = async () => {
 }
 
 main();
+
 
