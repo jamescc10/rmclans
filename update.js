@@ -24,6 +24,10 @@ const leaderboards = [
 const getLeaderboardData = async (url, lb) => {
     const steamurl = `${url}stats/${gameid}/achievements/?tab=leaderboards&lb=${lb}`;
     const res = await fetch(steamurl);
+    if(!res.ok) {
+        console.log("couldnt send request to steam");
+        process.exit(1);
+    }
     const body = await res.text();
     const $ = cheerio.load(body);
     let data = {};
@@ -157,14 +161,15 @@ const run = async (now) => {
     for(let i = 0; i < clanData[0].length; ++i) { fs.writeFileSync(`./static/data/clans/${clanData[0][i][0]}.json`, JSON.stringify(clanData[1][i])); }
     for(let i = 0; i < playerData[0].length; ++i) { fs.writeFileSync(`./static/data/players/${playerData[0][i].id}.json`, JSON.stringify(playerData[1][i])); }
     fs.writeFileSync("./static/data/time.txt", `${now}`);
+    process.exit(0);
 }
 
 const main = async () => {
     const now = new Date();
-    // if(now.getUTCDay() !== 5 || now.getUTCHours() !== 17) {
-    //     console.log("not friday 5pm");
-    //     return;
-    // }
+    //if(now.getUTCDay() !== 5 || now.getUTCHours() !== 17) {
+    //    console.log("not friday 5pm");
+    //    return;
+    //}
 
     let oldTimeFetch = await fetch(`${websiteURL}time.txt`);
     let oldTime = now;
@@ -186,5 +191,3 @@ const main = async () => {
 }
 
 main();
-
-
