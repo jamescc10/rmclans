@@ -8,7 +8,7 @@ permissions:
 on:
   push:
   schedule:
-    - cron: "0 17 * * 5"
+    - cron: "30 17 * * 5"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
