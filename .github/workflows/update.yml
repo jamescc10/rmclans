@@ -31,7 +31,6 @@ jobs:
       - name: Copy deploy files
         run: |
           mkdir deploy
-          cp -r output deploy/
           cp -r static/data deploy/data
           
       - name: Setup Pages
