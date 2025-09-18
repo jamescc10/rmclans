@@ -161,10 +161,10 @@ const run = async (now) => {
 
 const main = async () => {
     const now = new Date();
-    if(now.getUTCDay() !== 5 || now.getUTCHours() !== 17) {
-        console.log("not friday 5pm");
-        return;
-    }
+    // if(now.getUTCDay() !== 5 || now.getUTCHours() !== 17) {
+    //     console.log("not friday 5pm");
+    //     return;
+    // }
 
     let oldTimeFetch = await fetch(`${websiteURL}time.txt`);
     let oldTime = now;
@@ -186,3 +186,4 @@ const main = async () => {
 }
 
 main();
+
