@@ -166,28 +166,30 @@ const run = async (now) => {
 
 const main = async () => {
     const now = new Date();
+    run(now);
     //if(now.getUTCDay() !== 5 || now.getUTCHours() !== 17) {
     //    console.log("not friday 5pm");
     //    return;
     //}
 
-    let oldTimeFetch = await fetch(`${websiteURL}time.txt`);
-    let oldTime = now;
-    if(oldTimeFetch.ok)
-        oldTime = new Date(await oldTimeFetch.text());
-    else {
-        console.log("first run?");
-        run(now);
-        return;
-    }
-
-    const differenceDays = (now-oldTime)/(1000*60*60*24);
-    if(differenceDays >= 7) {
-        console.log("running");
-        run(now);
-    } else {
-        console.log(`its only been ${differenceDays}`);
-    }
+    // let oldTimeFetch = await fetch(`${websiteURL}time.txt`);
+    // let oldTime = now;
+    // if(oldTimeFetch.ok)
+    //     oldTime = new Date(await oldTimeFetch.text());
+    // else {
+    //     console.log("first run?");
+    //     run(now);
+    //     return;
+    // }
+// 
+    // const differenceDays = (now-oldTime)/(1000*60*60*24);
+    // if(differenceDays >= 7) {
+    //     console.log("running");
+    //     run(now);
+    // } else {
+    //     console.log(`its only been ${differenceDays}`);
+    // }
 }
 
 main();
+
