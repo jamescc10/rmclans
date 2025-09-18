@@ -174,7 +174,7 @@ const main = async () => {
     let oldTimeFetch = await fetch(`${websiteURL}time.txt`);
     let oldTime = now;
     if(oldTimeFetch.ok)
-        oldTime = new Date(await oldDataFetch.text());
+        oldTime = new Date(await oldTimeFetch.text());
     else {
         console.log("first run?");
         run(now);
