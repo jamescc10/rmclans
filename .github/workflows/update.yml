@@ -27,11 +27,21 @@ jobs:
       
       - name: Run script
         run: node update.js
+      
+      - name: checkout gh-pages branch
+        uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+          path: old-pages
+      
+      - name: Copy old pages to deploy
+        run: |
+          mkdir -p deploy
+          cp -r old-pages/* deploy/
         
       - name: Copy deploy files
         run: |
-          mkdir deploy
-          cp -r static/* deploy/*
+          cp -r static/* deploy/
           
       - name: Setup Pages
         uses: actions/configure-pages@v5
