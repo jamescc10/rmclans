@@ -3,6 +3,7 @@ name: update-data
 on:
   schedule:
     - cron: "30 17 * * 5"
+  workflow_dispatch:
 
 permissions:
   contents: write
