@@ -9,14 +9,18 @@
     ],
     "players": [
         {
+            "name": "James",
             "id": "76561199592920783",
             "url": "https://steamcommunity.com/profiles/76561199592920783/",
-            "clan": 0
+            "clan": 0,
+            "public": true
         },
         {
+            "name": "nothing to see here",
             "id": "douhaveabadtime",
             "url": "https://steamcommunity.com/id/douhaveabadtime",
-            "clan": 0
+            "clan": 0,
+            "public": true
         }
     ]
 
